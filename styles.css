@@ -1,4 +1,4 @@
-
+ 
         :root {
             --primary: #4361ee;
             --primary-dark: #3a56d4;
@@ -540,6 +540,41 @@
             font-size: 0.85rem;
             color: var(--gray);
         }
+        
+        /* Swagger UI Container */
+        #swagger-ui-container {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: white;
+            z-index: 1000;
+            overflow: auto;
+            padding: 20px;
+        }
+        
+        .swagger-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid var(--light-gray);
+        }
+        
+        .swagger-header h2 {
+            color: var(--primary);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        #close-swagger {
+            background: var(--danger);
+            color: white;
+        }
 
         @media (max-width: 768px) {
             .flex-container {
@@ -568,5 +603,9 @@
                 width: 100%;
                 justify-content: space-between;
             }
+            
+            #swagger-ui-container {
+                padding: 10px;
+            }
         }
-
+ 

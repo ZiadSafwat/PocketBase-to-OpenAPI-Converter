@@ -1,4 +1,4 @@
- 
+
         document.addEventListener('DOMContentLoaded', function() {
             // DOM elements
             const fileInput = document.getElementById('schemaFile');
@@ -8,6 +8,7 @@
             const outputPreview = document.getElementById('outputPreview');
             const downloadBtn = document.getElementById('downloadBtn');
             const copyBtn = document.getElementById('copyBtn');
+            const viewSwaggerBtn = document.getElementById('viewSwaggerBtn');
             const statusMessage = document.getElementById('statusMessage');
             const previewSection = document.getElementById('previewSection');
             const enableExpansion = document.getElementById('enableExpansion');
@@ -22,6 +23,8 @@
             const collectionsList = document.getElementById('collectionsList');
             const selectAllBtn = document.getElementById('selectAllBtn');
             const deselectAllBtn = document.getElementById('deselectAllBtn');
+            const swaggerContainer = document.getElementById('swagger-ui-container');
+            const closeSwaggerBtn = document.getElementById('close-swagger');
             
             // Tab handling
             const tabs = document.querySelectorAll('.tab');
@@ -192,6 +195,40 @@
                 showStatus('Default expansion paths saved!', 'success');
             });
             
+            // View in Swagger UI
+            viewSwaggerBtn.addEventListener('click', () => {
+                if (!openApiSpec) {
+                    showStatus('No specification to display', 'warning');
+                    return;
+                }
+                
+                // Clear previous Swagger UI
+                document.getElementById('swagger-ui').innerHTML = '';
+                
+                // Show the container
+                swaggerContainer.style.display = 'block';
+                
+                // Render Swagger UI - FIXED layout issue
+                SwaggerUIBundle({
+                    spec: openApiSpec,
+                    dom_id: '#swagger-ui',
+                    deepLinking: true,
+                    presets: [
+                        SwaggerUIBundle.presets.apis,
+                        SwaggerUIBundle.SwaggerUIStandalonePreset
+                    ],
+                    plugins: [
+                        SwaggerUIBundle.plugins.DownloadUrl
+                    ],
+                    layout: "BaseLayout" // Using BaseLayout instead of StandaloneLayout
+                });
+            });
+            
+            // Close Swagger UI
+            closeSwaggerBtn.addEventListener('click', () => {
+                swaggerContainer.style.display = 'none';
+            });
+            
             // Show status message
             function showStatus(message, type) {
                 statusMessage.textContent = message;
@@ -327,9 +364,11 @@
                     const defaultTitle = `${name.charAt(0).toUpperCase() + name.slice(1)} Collection`;
                     const title = collectionTitles[name] || defaultTitle;
                     
-                    // Get selection state (default to true if not set)
-                    const isChecked = collectionSelectionState[name] !== undefined ? 
-                                      collectionSelectionState[name] : true;
+                    // Initialize selection state if not present
+                    if (collectionSelectionState[name] === undefined) {
+                        collectionSelectionState[name] = true;
+                    }
+                    const isChecked = collectionSelectionState[name];
                     
                     const collectionEl = document.createElement('div');
                     collectionEl.className = 'collection-row';
@@ -529,6 +568,7 @@
                 return schema;
             }
             
+            // FIXED: Corrected path definitions to include base path properly
             function buildOpenapiSpec(schema, expansionSettings, expansionPaths) {
                 const openapi = {
                     openapi: "3.0.3",
@@ -590,6 +630,12 @@
                         }
                     });
                     
+                    // Add id field
+                    properties["id"] = {
+                        type: "string",
+                        description: "Unique record identifier"
+                    };
+                    
                     // Only add required if there are required fields
                     const schemaDef = {
                         type: "object",
@@ -602,8 +648,8 @@
                     
                     openapi.components.schemas[schemaName] = schemaDef;
                     
-                    // Add collection paths
-                    const basePath = `/collections/${name}/records`;
+                    // Add collection paths - FIXED: Corrected path definitions
+                    const basePath = `/api/collections/${name}/records`;
                     
                     // List records
                     openapi.paths[basePath] = {
@@ -617,8 +663,17 @@
                                     content: {
                                         "application/json": {
                                             schema: {
-                                                type: "array",
-                                                items: {"$ref": `#/components/schemas/${schemaName}`}
+                                                type: "object",
+                                                properties: {
+                                                    page: { type: "number" },
+                                                    perPage: { type: "number" },
+                                                    totalItems: { type: "number" },
+                                                    totalPages: { type: "number" },
+                                                    items: {
+                                                        type: "array",
+                                                        items: {"$ref": `#/components/schemas/${schemaName}`}
+                                                    }
+                                                }
                                             }
                                         }
                                     }
@@ -629,7 +684,7 @@
                     
                     // Create record
                     if (ctype !== "view") {
-                        openapi.paths[basePath]["post"] = {
+                        openapi.paths[basePath].post = {
                             summary: `Create ${customTitle} Record`,
                             tags: [customTitle],
                             requestBody: {
@@ -678,7 +733,7 @@
                     };
                     
                     if (ctype !== "view") {
-                        openapi.paths[recordPath]["patch"] = {
+                        openapi.paths[recordPath].patch = {
                             summary: `Update ${customTitle} Record`,
                             tags: [customTitle],
                             parameters: [{
@@ -706,7 +761,7 @@
                             }
                         };
                         
-                        openapi.paths[recordPath]["delete"] = {
+                        openapi.paths[recordPath].delete = {
                             summary: `Delete ${customTitle} Record`,
                             tags: [customTitle],
                             parameters: [{
@@ -760,7 +815,7 @@
                     
                     // Add authentication endpoints for auth collections
                     if (ctype === "auth") {
-                        const authPath = `/collections/${name}/auth-with-password`;
+                        const authPath = `/api/collections/${name}/auth-with-password`;
                         openapi.paths[authPath] = {
                             post: {
                                 summary: `Authenticate ${customTitle}`,
@@ -893,4 +948,4 @@
                 showStatus('Example schema loaded for demonstration', 'success');
             }, 500);
         });
- 
+
