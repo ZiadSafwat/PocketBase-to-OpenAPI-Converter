@@ -649,7 +649,7 @@
                     openapi.components.schemas[schemaName] = schemaDef;
                     
                     // Add collection paths - FIXED: Corrected path definitions
-                    const basePath = `/api/collections/${name}/records`;
+                    const basePath = `/collections/${name}/records`;
                     
                     // List records
                     openapi.paths[basePath] = {
@@ -815,7 +815,7 @@
                     
                     // Add authentication endpoints for auth collections
                     if (ctype === "auth") {
-                        const authPath = `/api/collections/${name}/auth-with-password`;
+                        const authPath = `/collections/${name}/auth-with-password`;
                         openapi.paths[authPath] = {
                             post: {
                                 summary: `Authenticate ${customTitle}`,
