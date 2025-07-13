@@ -64,7 +64,13 @@
                             <div class="file-name" id="fileName">No file selected</div>
                         </label>
                     </div>
-                    
+                    <div class="input-group">
+    <label for="pbVersion">PocketBase Version</label>
+    <select id="pbVersion" class="btn-block">
+        <option value="v0.24">v0.24 (Default)</option>
+        <option value="v0.22">v0.22 (Legacy)</option>
+    </select>
+</div>
                     <div id="collectionManagement" class="collection-management" style="display: none;">
                         <div class="collection-header">
                             <h3><i class="fas fa-sliders-h"></i> Collection Management</h3>
@@ -225,9 +231,7 @@
         
         <div class="footer">
             <p>This tool converts PocketBase schemas to OpenAPI 3.0 specifications with Swagger preview. No data is sent to any server - processing happens entirely in your browser.</p>
-            <p>© 2025 PocketBase to OpenAPI Converter | Now with Swagger UI Preview</p>
-            <p>Made with ❤️ by a mobile developer exploring web technologies</p>
-
+            <p>© 2023 PocketBase to OpenAPI Converter | Now with Swagger UI Preview</p>
         </div>
     </div>
 

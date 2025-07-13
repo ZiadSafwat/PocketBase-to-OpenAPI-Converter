@@ -1,4 +1,4 @@
-
+let pbVersion = 'v0.24'; // Default version
         document.addEventListener('DOMContentLoaded', function() {
             // DOM elements
             const fileInput = document.getElementById('schemaFile');
@@ -117,6 +117,12 @@
                 reader.onload = (e) => {
                     try {
                         schemaData = JSON.parse(e.target.result);
+                        const version = document.getElementById('pbVersion').value;
+                        
+                        // Normalize schema based on version
+                        schemaData = normalizeSchema(schemaData, version);
+
+                      
                         
                         // Get expansion settings
                         const expansionSettings = {
@@ -483,6 +489,8 @@
                 const ftype = field.type;
                 const schema = {};
                 
+              
+                
                 if (ftype === "bool") {
                     schema.type = "boolean";
                 } else if (ftype === "number") {
@@ -492,6 +500,10 @@
                     }
                     if (field.max !== undefined && field.max !== null) {
                         schema.maximum = field.max;
+                    }
+                    // Handle noDecimal for v0.22
+                    if (field.options?.noDecimal) {
+                        schema.type = "integer";
                     }
                 } else if (ftype === "date" || ftype === "autodate") {
                     schema.type = "string";
@@ -948,4 +960,58 @@
                 showStatus('Example schema loaded for demonstration', 'success');
             }, 500);
         });
-
+        document.getElementById('pbVersion').addEventListener('change', function(e) {
+            pbVersion = e.target.value;
+        });
+        //  this function normalize different schema versions
+function normalizeSchema(schema, version) {
+    if (version === 'v0.22') {
+        return schema.map(collection => ({
+            id: collection.id,
+            name: collection.name,
+            type: collection.type,
+            fields: collection.schema.map(field => ({
+                id: field.id,
+                name: field.name,
+                type: field.type,
+                required: field.required || false,
+                maxSelect: field.options?.maxSelect || 1,
+                collectionId: field.options?.collectionId,
+                min: field.options?.min,
+                max: field.options?.max,
+                pattern: field.options?.pattern,
+                values: field.options?.values,
+                minSelect: field.options?.minSelect
+            }))
+        }));
+    }
+    // v0.24 needs no normalization
+    return schema;
+}
+// Add this to your detectRelations function
+function detectRelations(schema) {
+    const relations = [];
+    
+    schema.forEach(collection => {
+        collection.fields.forEach(field => {
+            if (field.type === "relation") {
+                // Handle v0.22's collectionId reference
+                const relatedId = field.collectionId || field.options?.collectionId;
+                if (!relatedId) return;
+                
+                const relatedCollection = schema.find(c => c.id === relatedId);
+                
+                if (relatedCollection) {
+                    relations.push({
+                        collection: collection.name,
+                        field: field.name,
+                        relatedCollection: relatedCollection.name,
+                        maxSelect: field.maxSelect || field.options?.maxSelect || 1
+                    });
+                }
+            }
+        });
+    });
+    
+    return relations;
+}
