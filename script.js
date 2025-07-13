@@ -1101,8 +1101,61 @@ document.addEventListener('DOMContentLoaded', function() {
             openapi.paths[basePath] = {
                 get: {
                     summary: `List ${customTitle}`,
+                    description: `Retrieves a paginated list of ${customTitle} records. Supports filtering, sorting, and expanding relations.`,
                     tags: [customTitle],
-                    parameters: [],
+                    parameters: [
+                        // Filter parameter
+                        {
+                            name: "filter",
+                            in: "query",
+                            description: "Filtering expression (e.g., 'created > \"2022-01-01\"')",
+                            schema: { type: "string" },
+                            example: 'title ~ "example"'
+                        },
+                        // Sort parameter
+                        {
+                            name: "sort",
+                            in: "query",
+                            description: "Comma-separated list of fields to sort by. Prefix with '-' for descending order.",
+                            schema: { type: "string" },
+                            example: "-created,title"
+                        },
+                        // Page parameter
+                        {
+                            name: "page",
+                            in: "query",
+                            description: "Page number (starting from 1)",
+                            schema: { 
+                                type: "integer", 
+                                default: 1, 
+                                minimum: 1 
+                            },
+                            example: 1
+                        },
+                        // PerPage parameter
+                        {
+                            name: "perPage",
+                            in: "query",
+                            description: "Number of records per page (max 500)",
+                            schema: { 
+                                type: "integer", 
+                                default: 30, 
+                                minimum: 1, 
+                                maximum: 500 
+                            },
+                            example: 30
+                        },
+                        // SkipTotal parameter
+                        {
+                            name: "skipTotal",
+                            in: "query",
+                            description: "Set to true to skip the total count (improves performance for large collections)",
+                            schema: { 
+                                type: "boolean", 
+                                default: false 
+                            }
+                        }
+                    ],
                     responses: {
                         "200": {
                             description: `List of ${customTitle}`,
